@@ -43,12 +43,12 @@ pub fn start(w: &mut MyWindowHandler, helper: &mut WindowHelper<()>, _info: Wind
 		let mut y_shift = 0.0;
 		for _ in 0..size {
 			pdse2.atoms.append(&mut vec![
-				Atom { x: x_shift, y: y_shift, z: 0.0, r, color: pd_color },
-				Atom { x: x_shift + a*0.5, y: y_shift + b*0.5, z: 0.0, r, color: pd_color },
-				Atom { x: x_shift + a*0.1105, y: y_shift + b*0.3813, z: -0.731, r, color: se_color },
-				Atom { x: x_shift + a*0.3896, y: y_shift + b*(1.0-0.1186), z: -0.731, r, color: se_color },
-				Atom { x: x_shift + a*(1.0-0.1105), y: y_shift + b*(1.0-0.3813), z: 0.731, r, color: se_color },
-				Atom { x: x_shift + a*(1.0-0.3896), y: y_shift + b*0.1186, z: 0.731, r, color: se_color },
+				Atom { x: x_shift, y: y_shift, z: 0.0, r, color: Color::from_rgb(0.8, 1.0, 1.0) },
+				Atom { x: x_shift + a*0.5, y: y_shift + b*0.5, z: 0.0, r, color: Color::from_rgb(0.8, 1.0, 1.0) },
+				Atom { x: x_shift + a*0.1105, y: y_shift + b*0.3813, z: -0.731, r, color: Color::from_rgb(0.8, 1.0, 0.8) },
+				Atom { x: x_shift + a*0.3896, y: y_shift + b*(1.0-0.1186), z: -0.731, r, color: Color::from_rgb(0.8, 1.0, 0.8) },
+				Atom { x: x_shift + a*(1.0-0.1105), y: y_shift + b*(1.0-0.3813), z: 0.731, r, color: Color::from_rgb(0.8, 1.0, 0.8) },
+				Atom { x: x_shift + a*(1.0-0.3896), y: y_shift + b*0.1186, z: 0.731, r, color: Color::from_rgb(0.8, 1.0, 0.8) },
 			]);
 			
 			y_shift += b;
@@ -61,6 +61,12 @@ pub fn start(w: &mut MyWindowHandler, helper: &mut WindowHelper<()>, _info: Wind
 	let mut pdse2r = pdse2.clone();
 	pdse2r.name = String::from("PdSe2 Rotated");
 	pdse2r.z = 10.0;
+	for i in 0..pdse2r.atoms.len() {
+		pdse2r.atoms[i].color = match pdse2r.atoms[i].color.b() > 0.9 {
+			true => pd_color,
+			false => se_color
+		};
+	}
 	
 	
 	w.layers = vec![pdse2, pdse2r];

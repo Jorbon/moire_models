@@ -46,30 +46,30 @@ impl WindowHandler for MyWindowHandler {
 			
 			Some(VirtualKeyCode::Minus) => {
 				self.da *= 0.5;
-				helper.set_title(format!("PdSe2: {} degrees (da: {})", self.layers[1].angle, self.da));
 			}
 			Some(VirtualKeyCode::Equals) => {
 				self.da *= 2.0;
-				helper.set_title(format!("PdSe2: {} degrees (da: {})", self.layers[1].angle, self.da));
 			}
 			Some(VirtualKeyCode::Comma) => {
 				for i in 1..self.layers.len() {
 					self.layers[i].angle -= self.da;
 					self.layers[i].angle = (self.layers[i].angle * 1000.0) as i32 as f64 * 0.001;
 				}
-				helper.set_title(format!("PdSe2: {} degrees (da: {})", self.layers[1].angle, self.da));
 			}
 			Some(VirtualKeyCode::Period) => {
 				for i in 1..self.layers.len() {
 					self.layers[i].angle += self.da;
 					self.layers[i].angle = (self.layers[i].angle * 1000.0) as i32 as f64 * 0.001;
 				}
-				helper.set_title(format!("PdSe2: {} degrees (da: {})", self.layers[1].angle, self.da));
 			}
 			Some(VirtualKeyCode::Slash) => {
 				for i in 1..self.layers.len() {
 					self.layers[i].angle = 0.0;
 				}
+			}
+			
+			Some(VirtualKeyCode::S) => {
+				self.screenshot = true;
 			}
 			
 			Some(VirtualKeyCode::Z) => { if self.layers.len() > 0 { self.layers[0].show = !self.layers[0].show } }

@@ -3,6 +3,5 @@ name = "moire_models"
 version = "0.1.0"
 
 [dependencies]
-rand = "*"
 png = "*"
 speedy2d = "1.11.0"

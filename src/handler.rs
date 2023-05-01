@@ -26,6 +26,7 @@ pub struct MyWindowHandler {
 	pub da: f64,
 	pub frame_timer: Instant,
 	pub previous_frame_timestamp: Duration,
+	pub screenshot: bool,
 }
 
 impl MyWindowHandler {
@@ -54,6 +55,7 @@ impl MyWindowHandler {
 			text2: None,
 			layers,
 			da: 0.1,
+			screenshot: false,
 		}
 	}
 	
@@ -84,7 +86,7 @@ impl MyWindowHandler {
 		)
 	}
 	
-	pub fn output(&self, x: f64, y: f64, z: f64) -> (f32, f32) {
+	pub fn _output(&self, x: f64, y: f64, z: f64) -> (f32, f32) {
 		let cosu = self.u.cos();
 		let sinu = self.u.sin();
 		let x2 = x*cosu + y*sinu;
