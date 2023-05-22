@@ -1,7 +1,7 @@
 
 use speedy2d::{window::{WindowHandler, WindowHelper, VirtualKeyCode, KeyScancode, WindowFullscreenMode, MouseButton, MouseScrollDistance, WindowStartupInfo}, dimen::Vec2, Graphics2D};
 
-use crate::{handler::MyWindowHandler};
+use crate::{handler::{MyWindowHandler, Lattice}};
 
 
 impl WindowHandler for MyWindowHandler {
@@ -32,53 +32,43 @@ impl WindowHandler for MyWindowHandler {
 			}
 			
 			Some(VirtualKeyCode::Left) => {
-				self.u += 1.0;
+				
 			}
 			Some(VirtualKeyCode::Right) => {
-				self.u -= 1.0;
+				
 			}
 			Some(VirtualKeyCode::Up) => {
-				self.v += 1.0;
+				
 			}
 			Some(VirtualKeyCode::Down) => {
-				self.v -= 1.0;
+				
 			}
 			
-			Some(VirtualKeyCode::Minus) => {
-				self.da *= 0.5;
-			}
-			Some(VirtualKeyCode::Equals) => {
-				self.da *= 2.0;
-			}
+			Some(VirtualKeyCode::Minus) => self.da *= 0.5,
+			Some(VirtualKeyCode::Equals) => self.da *= 2.0,
 			Some(VirtualKeyCode::Comma) => {
-				for i in 1..self.layers.len() {
-					self.layers[i].angle -= self.da;
-					self.layers[i].angle = (self.layers[i].angle * 1000.0) as i32 as f64 * 0.001;
-				}
+				self.angle -= self.da;
+				self.angle = (self.angle * 1000.0) as i32 as f64 * 0.001;
 			}
 			Some(VirtualKeyCode::Period) => {
-				for i in 1..self.layers.len() {
-					self.layers[i].angle += self.da;
-					self.layers[i].angle = (self.layers[i].angle * 1000.0) as i32 as f64 * 0.001;
-				}
+				self.angle += self.da;
+				self.angle = (self.angle * 1000.0) as i32 as f64 * 0.001;
 			}
-			Some(VirtualKeyCode::Slash) => {
-				for i in 1..self.layers.len() {
-					self.layers[i].angle = 0.0;
-				}
-			}
+			Some(VirtualKeyCode::Slash) => self.angle = 0.0,
 			
-			Some(VirtualKeyCode::S) => {
-				self.screenshot = true;
-			}
+			Some(VirtualKeyCode::F) => self.show_fixed = !self.show_fixed,
+			Some(VirtualKeyCode::R) => self.show_rotated = !self.show_rotated,
+			Some(VirtualKeyCode::J) => { self.show_atoms = true; self.show_bonds = true }
+			Some(VirtualKeyCode::K) => { self.show_atoms = true; self.show_bonds = false }
+			Some(VirtualKeyCode::L) => { self.show_atoms = false; self.show_bonds = true }
 			
-			Some(VirtualKeyCode::Z) => { if self.layers.len() > 0 { self.layers[0].show = !self.layers[0].show } }
-			Some(VirtualKeyCode::X) => { if self.layers.len() > 1 { self.layers[1].show = !self.layers[1].show } }
-			Some(VirtualKeyCode::C) => { if self.layers.len() > 2 { self.layers[2].show = !self.layers[2].show } }
-			Some(VirtualKeyCode::V) => { if self.layers.len() > 3 { self.layers[3].show = !self.layers[3].show } }
-			Some(VirtualKeyCode::B) => { if self.layers.len() > 4 { self.layers[4].show = !self.layers[4].show } }
-			Some(VirtualKeyCode::N) => { if self.layers.len() > 5 { self.layers[5].show = !self.layers[5].show } }
-			Some(VirtualKeyCode::M) => { if self.layers.len() > 6 { self.layers[6].show = !self.layers[6].show } }
+			Some(VirtualKeyCode::S) => self.screenshot = true,
+			
+			Some(VirtualKeyCode::Z) => self.fixed_lattice = Lattice::PdSe2(self.a, self.b, self.pd_color, self.se_color),
+			Some(VirtualKeyCode::X) => self.fixed_lattice = Lattice::TMD(self.a_wse2, self.w_color, self.se_color),
+			Some(VirtualKeyCode::C) => self.fixed_lattice = Lattice::TMD(self.a_mose2, self.mo_color, self.se_color),
+			Some(VirtualKeyCode::V) => self.fixed_lattice = Lattice::TMD(self.a_ws2, self.w_color, self.s_color),
+			Some(VirtualKeyCode::B) => self.fixed_lattice = Lattice::TMD(self.a_mos2, self.mo_color, self.s_color),
 			_ => ()
 		}
 	}

@@ -6,7 +6,6 @@ use speedy2d::dimen::{Vector2};
 use speedy2d::window::{WindowCreationOptions, WindowSize, WindowPosition};
 use speedy2d::{Window};
 
-mod structs;
 mod util;
 mod handler;
 mod start;
