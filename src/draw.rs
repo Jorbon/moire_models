@@ -2,10 +2,14 @@
 use std::{f64::consts::PI, io::BufWriter, fs::File};
 use speedy2d::{window::WindowHelper, Graphics2D, color::Color, image::ImageDataType};
 
-use crate::{handler::{MyWindowHandler, Lattice}, util::construct_text_option};
+use crate::{handler::{MyWindowHandler, Lattice}, util::construct_text};
 
 
 fn draw_pdse2(graphics: &mut Graphics2D, a: f64, b: f64, pd_color: Color, se_color: Color, bond_color: Color, r: f64, bond_r: f64, show_atoms: bool, show_bonds: bool, start_x: i32, start_y: i32, end_x: i32, end_y: i32, t: (f64, f64, f64, f64, f64, f64, f64)) {
+	if (end_x - start_x) * (end_y - start_y) > 150_000 {
+		return
+	}
+	
 	let x1 = 0.1105*a;
 	let x2 = 0.3896*a;
 	let y1 = 0.3813*b;
@@ -61,6 +65,10 @@ fn draw_pdse2(graphics: &mut Graphics2D, a: f64, b: f64, pd_color: Color, se_col
 }
 
 fn draw_tmd(graphics: &mut Graphics2D, a: f64, tm_color: Color, cg_color: Color, bond_color: Color, r: f64, bond_r: f64, show_atoms: bool, show_bonds: bool, start_x: i32, start_y: i32, end_x: i32, end_y: i32, t: (f64, f64, f64, f64, f64, f64, f64)) {
+	if (end_x - start_x) * (end_y - start_y) > 200_000 {
+		return
+	}
+	
 	let dx = a * -0.5;
 	let dy = a * f64::sqrt(3.0) * 0.5;
 	for i in start_x..=end_x {
@@ -112,20 +120,18 @@ pub fn draw(w: &mut MyWindowHandler, helper: &mut WindowHelper, graphics: &mut G
 	// measure framerate
 	let now = w.frame_timer.elapsed();
 	let dt = (now - w.previous_frame_timestamp).as_nanos() as f64 * 1e-9;
-	let avg_proportion: f64 = 0.05;
+	let avg_proportion = dt * 3.0;
 	w.frame_time_avg = w.frame_time_avg * (1.0 - avg_proportion) + dt * avg_proportion;
 	w.previous_frame_timestamp = now;
-	
-	// show framerate
 	let fps_str = ((1.0 / w.frame_time_avg) as u32).to_string() + " fps";
+	let fps_text = construct_text(&fps_str, &w.font, 48.0);
 	
 	// show mouse position
 	let mouse_pos = w.input(w.mouse_x, w.mouse_y);
 	let _mouse_pos_str = format!("{:.3}, {:.3}   ({:.3}A, {:.3}°)", mouse_pos.0, mouse_pos.1, f64::sqrt(mouse_pos.0 * mouse_pos.0 + mouse_pos.1 * mouse_pos.1), f64::atan2(mouse_pos.1, mouse_pos.0) * 180.0 / PI);
-	w.text2 = construct_text_option(&fps_str, &w.font1, 48.0);
 	
 	// show angle
-	w.text1 = construct_text_option(format!("{:.3}°", w.angle).as_str(), &w.font1, 48.0);
+	let angle_text = construct_text(format!("{:.3}°", w.angle).as_str(), &w.font, 48.0);
 	
 	
 	
@@ -187,14 +193,31 @@ pub fn draw(w: &mut MyWindowHandler, helper: &mut WindowHelper, graphics: &mut G
 	}
 	
 	
-	
-	
-	if let Some(text) = &w.text1 {
-		graphics.draw_text((20.0, text.height() - 40.0), Color::WHITE, &text);
+	let mut scale = 1.0;
+	let mut scale_str = "1A";
+	let strs = ["1A", "1nm", "10nm", "100nm", "1μm", "10μm", "100μm", "1mm", "10mm", "100mm", "1m"];
+	for i in (1..=10_u32).rev() {
+		let s = usize::pow(10, i) as f64;
+		if w.fov * 1.5 > s {
+			scale = s;
+			scale_str = strs[i as usize];
+			break;
+		}
 	}
-	if let Some(text) = &w.text2 {
-		graphics.draw_text((20.0, height as f32 - text.height() - 20.0), Color::WHITE, &text);
-	}
+	
+	let output_scale = w.get_output_scale();
+	
+	let left_x = (width - (scale * output_scale) as f32) * 0.5;
+	let right_x = (width + (scale * output_scale) as f32) * 0.5;
+	graphics.draw_line((left_x, 20.0), (right_x, 20.0), 3.0, Color::WHITE);
+	graphics.draw_line((left_x, 20.0), (left_x, 50.0), 3.0, Color::WHITE);
+	graphics.draw_line((right_x, 20.0), (right_x, 50.0), 3.0, Color::WHITE);
+	
+	let scale_text = construct_text(scale_str, &w.font, 40.0);
+	graphics.draw_text(((width - scale_text.width()) * 0.5, 25.0), Color::WHITE, &scale_text);
+	
+	graphics.draw_text((20.0, fps_text.height() - 40.0), Color::WHITE, &fps_text);
+	graphics.draw_text((20.0, height as f32 - angle_text.height() - 20.0), Color::WHITE, &angle_text);
 	
 	
 	if w.screenshot {

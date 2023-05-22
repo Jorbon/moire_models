@@ -1,10 +1,10 @@
 
-use speedy2d::{window::{WindowHelper, WindowStartupInfo}, font::Font};
+use speedy2d::window::{WindowHelper, WindowStartupInfo};
 
 use crate::handler::MyWindowHandler;
 
 
-pub fn start(w: &mut MyWindowHandler, helper: &mut WindowHelper<()>, _info: WindowStartupInfo) {
+pub fn start(_w: &mut MyWindowHandler, helper: &mut WindowHelper<()>, _info: WindowStartupInfo) {
 	// load window icon
 	let path = "assets/icon.png";
 	match crate::util::load_png(path) {
@@ -16,12 +16,6 @@ pub fn start(w: &mut MyWindowHandler, helper: &mut WindowHelper<()>, _info: Wind
 		}
 		Err(_) => println!("icon.png was not found at {path}")
 	};
-	
-	// load font
-	w.font1 = Some(Font::new(include_bytes!("../assets/fonts/NotoSans-Regular.ttf")).unwrap());
-	w.str1 = String::from("text");
-	//self.text1 = construct_text_option(&self.str1, &self.font1, 64.0);
-	
 	
 }
 

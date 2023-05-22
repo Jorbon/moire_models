@@ -1,6 +1,6 @@
 
-use std::{time::{Instant, Duration}, rc::Rc, f64::consts::PI};
-use speedy2d::{dimen::{Vector2}, font::{Font, FormattedTextBlock}, color::Color};
+use std::{time::{Instant, Duration}, f64::consts::PI};
+use speedy2d::{dimen::{Vector2}, font::Font, color::Color};
 
 pub enum Lattice {
 	PdSe2(f64, f64, Color, Color),
@@ -21,10 +21,7 @@ pub struct MyWindowHandler {
 	pub v: f64,
 	pub w: f64,
 	pub fov: f64,
-	pub font1: Option<Font>,
-	pub str1: String,
-	pub text1: Option<Rc<FormattedTextBlock>>,
-	pub text2: Option<Rc<FormattedTextBlock>>,
+	pub font: Font,
 	pub show_atoms: bool,
 	pub show_bonds: bool,
 	pub show_fixed: bool,
@@ -74,10 +71,7 @@ impl MyWindowHandler {
 			v: 0.0,
 			w: 0.0,
 			fov: 10.0,
-			font1: None,
-			str1: String::new(),
-			text1: None,
-			text2: None,
+			font: Font::new(include_bytes!("../assets/fonts/NotoSans-Regular.ttf")).unwrap(),
 			show_atoms: true,
 			show_bonds: true,
 			show_fixed: true,
@@ -103,8 +97,12 @@ impl MyWindowHandler {
 		}
 	}
 	
+	pub fn get_output_scale(&self) -> f64 {
+		0.5 * self.size.x as f64 / self.fov
+	}
+	
 	pub fn get_output_transform(&self, rotation: f64) -> (f64, f64, f64, f64, f64, f64, f64) {
-		let output_scale = 0.5 * self.size.x as f64 / self.fov;
+		let output_scale = self.get_output_scale();
 		let cos = f64::cos(rotation * PI/180.0);
 		let sin = f64::sin(rotation * PI/180.0);
 		(
