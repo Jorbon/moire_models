@@ -44,6 +44,12 @@ impl WindowHandler for MyWindowHandler {
 				
 			}
 			
+			Some(VirtualKeyCode::Q) => {
+				self.vx = 0.0;
+				self.vy = 0.0;
+				self.fov = 100.0;
+			}
+			
 			Some(VirtualKeyCode::Minus) => self.da *= 0.5,
 			Some(VirtualKeyCode::Equals) => self.da *= 2.0,
 			Some(VirtualKeyCode::Comma) => {
@@ -61,14 +67,27 @@ impl WindowHandler for MyWindowHandler {
 			Some(VirtualKeyCode::J) => { self.show_atoms = true; self.show_bonds = true }
 			Some(VirtualKeyCode::K) => { self.show_atoms = true; self.show_bonds = false }
 			Some(VirtualKeyCode::L) => { self.show_atoms = false; self.show_bonds = true }
+			Some(VirtualKeyCode::D) => self.bilayer = !self.bilayer,
+			Some(VirtualKeyCode::E) => self.static_bilayer = !self.static_bilayer,
+			
+			Some(VirtualKeyCode::Space) => self.show_overlay = !self.show_overlay,
 			
 			Some(VirtualKeyCode::S) => self.screenshot = true,
+			Some(VirtualKeyCode::LShift) | Some(VirtualKeyCode::RShift) => self.screenshot_dot = true,
 			
 			Some(VirtualKeyCode::Z) => self.fixed_lattice = Lattice::PdSe2(self.a, self.b, self.pd_color, self.se_color),
 			Some(VirtualKeyCode::X) => self.fixed_lattice = Lattice::TMD(self.a_wse2, self.w_color, self.se_color),
 			Some(VirtualKeyCode::C) => self.fixed_lattice = Lattice::TMD(self.a_mose2, self.mo_color, self.se_color),
 			Some(VirtualKeyCode::V) => self.fixed_lattice = Lattice::TMD(self.a_ws2, self.w_color, self.s_color),
 			Some(VirtualKeyCode::B) => self.fixed_lattice = Lattice::TMD(self.a_mos2, self.mo_color, self.s_color),
+			
+			_ => ()
+		}
+	}
+	
+	fn on_key_up(&mut self, _helper: &mut WindowHelper<()>, virtual_key_code: Option<VirtualKeyCode>, _scancode: KeyScancode) {
+		match virtual_key_code {
+			Some(VirtualKeyCode::LShift) | Some(VirtualKeyCode::RShift) => self.screenshot_dot = false,
 			_ => ()
 		}
 	}

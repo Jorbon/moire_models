@@ -1,11 +1,11 @@
 
-use std::{f64::consts::PI, io::BufWriter, fs::File};
+use std::{io::BufWriter, fs::File};
 use speedy2d::{window::WindowHelper, Graphics2D, color::Color, image::ImageDataType};
 
 use crate::{handler::{MyWindowHandler, Lattice}, util::construct_text};
 
 
-fn draw_pdse2(graphics: &mut Graphics2D, a: f64, b: f64, pd_color: Color, se_color: Color, bond_color: Color, r: f64, bond_r: f64, show_atoms: bool, show_bonds: bool, start_x: i32, start_y: i32, end_x: i32, end_y: i32, t: (f64, f64, f64, f64, f64, f64, f64)) {
+fn draw_pdse2(graphics: &mut Graphics2D, a: f64, b: f64, pd_color: Color, se_color: Color, bond_color: Color, r: f64, bond_r: f64, show_atoms: bool, show_bonds: bool, start_x: i32, start_y: i32, end_x: i32, end_y: i32, t: (f64, f64, f64, f64, f64, f64, f64), bilayer_shift: bool) {
 	if (end_x - start_x) * (end_y - start_y) > 150_000 {
 		return
 	}
@@ -24,7 +24,12 @@ fn draw_pdse2(graphics: &mut Graphics2D, a: f64, b: f64, pd_color: Color, se_col
 	];
 	
 	for i in start_x..=end_x {
-		let x_shift = i as f64 * a;
+		let x_shift = if bilayer_shift {
+			(i as f64 + 0.5) * a
+		} else {
+			i as f64 * a
+		};
+		
 		for j in start_y..=end_y {
 			let y_shift = j as f64 * b;
 			
@@ -123,15 +128,6 @@ pub fn draw(w: &mut MyWindowHandler, helper: &mut WindowHelper, graphics: &mut G
 	let avg_proportion = dt * 3.0;
 	w.frame_time_avg = w.frame_time_avg * (1.0 - avg_proportion) + dt * avg_proportion;
 	w.previous_frame_timestamp = now;
-	let fps_str = ((1.0 / w.frame_time_avg) as u32).to_string() + " fps";
-	let fps_text = construct_text(&fps_str, &w.font, 48.0);
-	
-	// show mouse position
-	let mouse_pos = w.input(w.mouse_x, w.mouse_y);
-	let _mouse_pos_str = format!("{:.3}, {:.3}   ({:.3}A, {:.3}°)", mouse_pos.0, mouse_pos.1, f64::sqrt(mouse_pos.0 * mouse_pos.0 + mouse_pos.1 * mouse_pos.1), f64::atan2(mouse_pos.1, mouse_pos.0) * 180.0 / PI);
-	
-	// show angle
-	let angle_text = construct_text(format!("{:.3}°", w.angle).as_str(), &w.font, 48.0);
 	
 	
 	
@@ -146,20 +142,35 @@ pub fn draw(w: &mut MyWindowHandler, helper: &mut WindowHelper, graphics: &mut G
 		let (end_x, end_y) = w.input(width as f32, height as f32);
 		
 		match w.fixed_lattice {
-			Lattice::PdSe2(a, b, pd, se) => draw_pdse2(graphics, a, b, pd, se, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
-				(start_x / a) as i32 - 1,
-				(start_y / b) as i32 - 1,
-				(end_x / a) as i32,
-				(end_y / b) as i32,
-				w.get_output_transform(0.0)
-			),
-			Lattice::TMD(a, tm, cg) => draw_tmd(graphics, a, tm, cg, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
-				((start_x + start_y / f64::sqrt(3.0)) / a) as i32 - 1,
-				(start_y * 2.0 / (a * f64::sqrt(3.0))) as i32 - 1,
-				((end_x + end_y / f64::sqrt(3.0)) / a) as i32,
-				(end_y * 2.0 / (a * f64::sqrt(3.0))) as i32,
-				w.get_output_transform(0.0)
-			)
+			Lattice::PdSe2(a, b, pd, se) => {
+				draw_pdse2(graphics, a, b, pd, se, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+					(start_x / a) as i32 - 1,
+					(start_y / b) as i32 - 1,
+					(end_x / a) as i32,
+					(end_y / b) as i32,
+					w.get_output_transform(0.0),
+					false
+				);
+				if w.bilayer && w.static_bilayer {
+					draw_pdse2(graphics, a, b, pd, se, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+						(start_x / a) as i32 - 1,
+						(start_y / b) as i32 - 1,
+						(end_x / a) as i32,
+						(end_y / b) as i32,
+						w.get_output_transform(0.0),
+						true
+					);
+				}
+			}
+			Lattice::TMD(a, tm, cg) => {
+				draw_tmd(graphics, a, tm, cg, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+					((start_x + start_y / f64::sqrt(3.0)) / a) as i32 - 1,
+					(start_y * 2.0 / (a * f64::sqrt(3.0))) as i32 - 1,
+					((end_x + end_y / f64::sqrt(3.0)) / a) as i32,
+					(end_y * 2.0 / (a * f64::sqrt(3.0))) as i32,
+					w.get_output_transform(0.0)
+				);
+			}
 		};
 	}
 	
@@ -188,42 +199,65 @@ pub fn draw(w: &mut MyWindowHandler, helper: &mut WindowHelper, graphics: &mut G
 			(miny / w.b) as i32 - 1,
 			(maxx / w.a) as i32,
 			(maxy / w.b) as i32,
-			w.get_output_transform(w.angle)
+			w.get_output_transform(w.angle),
+			false
 		);
-	}
-	
-	
-	let mut scale = 1.0;
-	let mut scale_str = "1A";
-	let strs = ["1A", "1nm", "10nm", "100nm", "1μm", "10μm", "100μm", "1mm", "10mm", "100mm", "1m"];
-	for i in (1..=10_u32).rev() {
-		let s = usize::pow(10, i) as f64;
-		if w.fov * 1.5 > s {
-			scale = s;
-			scale_str = strs[i as usize];
-			break;
+		if w.bilayer {
+			draw_pdse2(graphics, w.a, w.b, w.pd_color, w.se_color, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+				(minx / w.a) as i32 - 1,
+				(miny / w.b) as i32 - 1,
+				(maxx / w.a) as i32,
+				(maxy / w.b) as i32,
+				w.get_output_transform(w.angle),
+				true
+			);
 		}
 	}
 	
-	let output_scale = w.get_output_scale();
 	
-	let left_x = (width - (scale * output_scale) as f32) * 0.5;
-	let right_x = (width + (scale * output_scale) as f32) * 0.5;
-	graphics.draw_line((left_x, 20.0), (right_x, 20.0), 3.0, Color::WHITE);
-	graphics.draw_line((left_x, 20.0), (left_x, 50.0), 3.0, Color::WHITE);
-	graphics.draw_line((right_x, 20.0), (right_x, 50.0), 3.0, Color::WHITE);
+	let mouse_pos = w.input(w.mouse_x, w.mouse_y);
 	
-	let scale_text = construct_text(scale_str, &w.font, 40.0);
-	graphics.draw_text(((width - scale_text.width()) * 0.5, 25.0), Color::WHITE, &scale_text);
-	
-	graphics.draw_text((20.0, fps_text.height() - 40.0), Color::WHITE, &fps_text);
-	graphics.draw_text((20.0, height as f32 - angle_text.height() - 20.0), Color::WHITE, &angle_text);
+	if w.show_overlay {
+		let mut scale = 1.0;
+		let mut scale_str = "1A";
+		let strs = ["1A", "1nm", "10nm", "100nm", "1μm", "10μm", "100μm", "1mm", "10mm", "100mm", "1m"];
+		for i in (1..=10_u32).rev() {
+			let s = usize::pow(10, i) as f64;
+			if w.fov * 1.5 > s {
+				scale = s;
+				scale_str = strs[i as usize];
+				break;
+			}
+		}
+		
+		let output_scale = w.get_output_scale();
+		
+		let left_x = (width - (scale * output_scale) as f32) * 0.5;
+		let right_x = (width + (scale * output_scale) as f32) * 0.5;
+		graphics.draw_line((left_x, 20.0), (right_x, 20.0), 3.0, Color::WHITE);
+		graphics.draw_line((left_x, 20.0), (left_x, 50.0), 3.0, Color::WHITE);
+		graphics.draw_line((right_x, 20.0), (right_x, 50.0), 3.0, Color::WHITE);
+		
+		let scale_text = construct_text(scale_str, &w.font, 40.0);
+		graphics.draw_text(((width - scale_text.width()) * 0.5, 25.0), Color::WHITE, &scale_text);
+		
+		let fps_text = construct_text(format!("{:.0} fps", 1.0 / w.frame_time_avg).as_str(), &w.font, 48.0);
+		graphics.draw_text((20.0, 20.0), Color::WHITE, &fps_text);
+		
+		let angle_text = construct_text(format!("{:.3}°", w.angle).as_str(), &w.font, 48.0);
+		graphics.draw_text((20.0, height as f32 - angle_text.height() - 20.0), Color::WHITE, &angle_text);
+		
+		let mouse_pos_text = construct_text(format!("{:.3}, {:.3}", mouse_pos.0, mouse_pos.1).as_str(), &w.font, 48.0);
+		graphics.draw_text((width - mouse_pos_text.width() - 20.0, height - mouse_pos_text.height() - 20.0), Color::WHITE, &mouse_pos_text);
+	}
 	
 	
 	if w.screenshot {
-		graphics.draw_circle((w.mouse_x, w.mouse_y), 5.0, Color::MAGENTA);
+		if w.screenshot_dot {
+			graphics.draw_circle((w.mouse_x, w.mouse_y), 5.0, Color::MAGENTA);
+		}
 		let image_data = graphics.capture(ImageDataType::RGB);
-		let mut encoder = png::Encoder::new(BufWriter::new(File::create(format!("captures/{:.3}° {:.3}A.png", w.angle, f64::sqrt(mouse_pos.0 * mouse_pos.0 + mouse_pos.1 * mouse_pos.1))).unwrap()), w.size.x, w.size.y);
+		let mut encoder = png::Encoder::new(BufWriter::new(File::create(format!("captures/{:.3}° ({:.3}, {:.3}).png", w.angle, mouse_pos.0, mouse_pos.1)).unwrap()), w.size.x, w.size.y);
 		encoder.set_color(png::ColorType::RGB);
 		encoder.write_header().unwrap().write_image_data(image_data.data()).unwrap();
 		

@@ -26,12 +26,14 @@ pub struct MyWindowHandler {
 	pub show_bonds: bool,
 	pub show_fixed: bool,
 	pub show_rotated: bool,
+	pub show_overlay: bool,
 	pub fixed_lattice: Lattice,
 	pub angle: f64,
 	pub da: f64,
 	pub frame_timer: Instant,
 	pub previous_frame_timestamp: Duration,
 	pub screenshot: bool,
+	pub screenshot_dot: bool,
 	pub pd_color: Color,
 	pub se_color: Color,
 	pub s_color: Color,
@@ -46,6 +48,8 @@ pub struct MyWindowHandler {
 	pub a_mose2: f64,
 	pub a_ws2: f64,
 	pub a_mos2: f64,
+	pub bilayer: bool,
+	pub static_bilayer: bool,
 }
 
 impl MyWindowHandler {
@@ -70,16 +74,18 @@ impl MyWindowHandler {
 			u: 0.0,
 			v: 0.0,
 			w: 0.0,
-			fov: 10.0,
+			fov: 100.0,
 			font: Font::new(include_bytes!("../assets/fonts/NotoSans-Regular.ttf")).unwrap(),
 			show_atoms: true,
 			show_bonds: true,
 			show_fixed: true,
 			show_rotated: true,
+			show_overlay: true,
 			fixed_lattice: Lattice::PdSe2(a, b, pd_color, se_color),
 			angle: 0.0,
 			da: 0.1,
 			screenshot: false,
+			screenshot_dot: false,
 			pd_color,
 			se_color,
 			s_color: Color::from_rgb(0.7, 0.7, 0.1),
@@ -94,6 +100,8 @@ impl MyWindowHandler {
 			a_mose2: 3.322,
 			a_ws2: 3.184,
 			a_mos2: 3.193,
+			bilayer: false,
+			static_bilayer: true,
 		}
 	}
 	
