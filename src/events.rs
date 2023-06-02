@@ -1,7 +1,7 @@
 
 use speedy2d::{window::{WindowHandler, WindowHelper, VirtualKeyCode, KeyScancode, WindowFullscreenMode, MouseButton, MouseScrollDistance, WindowStartupInfo}, dimen::Vec2, Graphics2D};
 
-use crate::{handler::{MyWindowHandler, Lattice}};
+use crate::handler::{MyWindowHandler, Lattice};
 
 
 impl WindowHandler for MyWindowHandler {

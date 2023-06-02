@@ -2,9 +2,9 @@
 extern crate speedy2d;
 extern crate png;
 
-use speedy2d::dimen::{Vector2};
+use speedy2d::dimen::Vector2;
 use speedy2d::window::{WindowCreationOptions, WindowSize, WindowPosition};
-use speedy2d::{Window};
+use speedy2d::Window;
 
 mod util;
 mod handler;

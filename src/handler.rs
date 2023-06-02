@@ -1,6 +1,6 @@
 
 use std::{time::{Instant, Duration}, f64::consts::PI};
-use speedy2d::{dimen::{Vector2}, font::Font, color::Color};
+use speedy2d::{dimen::Vector2, font::Font, color::Color};
 
 pub enum Lattice {
 	PdSe2(f64, f64, Color, Color),
