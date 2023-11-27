@@ -75,11 +75,18 @@ impl WindowHandler for MyWindowHandler {
 			Some(VirtualKeyCode::S) => self.screenshot = true,
 			Some(VirtualKeyCode::LShift) | Some(VirtualKeyCode::RShift) => self.screenshot_dot = true,
 			
-			Some(VirtualKeyCode::Z) => self.fixed_lattice = Lattice::PdSe2(self.a, self.b, self.pd_color, self.se_color),
-			Some(VirtualKeyCode::X) => self.fixed_lattice = Lattice::TMD(self.a_wse2, self.w_color, self.se_color),
-			Some(VirtualKeyCode::C) => self.fixed_lattice = Lattice::TMD(self.a_mose2, self.mo_color, self.se_color),
-			Some(VirtualKeyCode::V) => self.fixed_lattice = Lattice::TMD(self.a_ws2, self.w_color, self.s_color),
-			Some(VirtualKeyCode::B) => self.fixed_lattice = Lattice::TMD(self.a_mos2, self.mo_color, self.s_color),
+			Some(VirtualKeyCode::Z) => match self.screenshot_dot {
+				true => self.rotated_lattice = Lattice::PdSe2(self.a_pdse2, self.b_pdse2, self.pd_color, self.se_color),
+				false => self.fixed_lattice = Lattice::PdSe2(self.a_pdse2, self.b_pdse2, self.pd_color, self.se_color)
+			}
+			Some(VirtualKeyCode::X) => match self.screenshot_dot {
+				true => self.rotated_lattice = Lattice::CrOCl(self.a_crocl, self.b_crocl, self.cr_color, self.o_color, self.cl_color),
+				false => self.fixed_lattice = Lattice::CrOCl(self.a_crocl, self.b_crocl, self.cr_color, self.o_color, self.cl_color)
+			}
+			Some(VirtualKeyCode::C) => self.fixed_lattice = Lattice::TMD(self.a_wse2, self.w_color, self.se_color),
+			Some(VirtualKeyCode::V) => self.fixed_lattice = Lattice::TMD(self.a_mose2, self.mo_color, self.se_color),
+			Some(VirtualKeyCode::B) => self.fixed_lattice = Lattice::TMD(self.a_ws2, self.w_color, self.s_color),
+			Some(VirtualKeyCode::N) => self.fixed_lattice = Lattice::TMD(self.a_mos2, self.mo_color, self.s_color),
 			
 			_ => ()
 		}

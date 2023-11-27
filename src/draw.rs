@@ -24,11 +24,7 @@ fn draw_pdse2(graphics: &mut Graphics2D, a: f64, b: f64, pd_color: Color, se_col
 	];
 	
 	for i in start_x..=end_x {
-		let x_shift = if bilayer_shift {
-			(i as f64 + 0.5) * a
-		} else {
-			i as f64 * a
-		};
+		let x_shift = a * (i as f64 + match bilayer_shift { true => 0.5, false => 0.0 });
 		
 		for j in start_y..=end_y {
 			let y_shift = j as f64 * b;
@@ -63,7 +59,66 @@ fn draw_pdse2(graphics: &mut Graphics2D, a: f64, b: f64, pd_color: Color, se_col
 				}
 			}
 			
+		}
+	}
+}
+
+fn draw_crocl(graphics: &mut Graphics2D, a: f64, b: f64, cr_color: Color, o_color: Color, cl_color: Color, bond_color: Color, r: f64, bond_r: f64, show_atoms: bool, show_bonds: bool, start_x: i32, start_y: i32, end_x: i32, end_y: i32, t: (f64, f64, f64, f64, f64, f64, f64), bilayer_shift: bool) {
+	if (end_x - start_x) * (end_y - start_y) > 200_000 {
+		return
+	}
+	
+	for i in start_x..=end_x {
+		let x_shift = a * (i as f64 + match bilayer_shift { true => 0.5, false => 0.0 });
+		
+		for j in start_y..=end_y {
+			let y_shift = j as f64 * b;
 			
+			if show_bonds {
+				graphics.draw_line(
+					((x_shift*t.0 + y_shift*t.2 + t.4) as f32,
+					(x_shift*t.1 + y_shift*t.3 + t.5) as f32),
+					(((x_shift + a)*t.0 + y_shift*t.2 + t.4) as f32,
+					((x_shift + a)*t.1 + y_shift*t.3 + t.5) as f32),
+					(bond_r * t.6) as f32,
+					bond_color
+				);
+				graphics.draw_line(
+					((x_shift*t.0 + (y_shift + 0.5*b)*t.2 + t.4) as f32,
+					(x_shift*t.1 + (y_shift + 0.5*b)*t.3 + t.5) as f32),
+					(((x_shift + a)*t.0 + (y_shift + 0.5*b)*t.2 + t.4) as f32,
+					((x_shift + a)*t.1 + (y_shift + 0.5*b)*t.3 + t.5) as f32),
+					(bond_r * t.6) as f32,
+					bond_color
+				);
+				graphics.draw_line(
+					((x_shift*t.0 + y_shift*t.2 + t.4) as f32,
+					(x_shift*t.1 + y_shift*t.3 + t.5) as f32),
+					((x_shift*t.0 + (y_shift + b)*t.2 + t.4) as f32,
+					(x_shift*t.1 + (y_shift + b)*t.3 + t.5) as f32),
+					(bond_r * t.6) as f32,
+					bond_color
+				);
+				graphics.draw_line(
+					(((x_shift + 0.5*a)*t.0 + y_shift*t.2 + t.4) as f32,
+					((x_shift + 0.5*a)*t.1 + y_shift*t.3 + t.5) as f32),
+					(((x_shift + 0.5*a)*t.0 + (y_shift + b)*t.2 + t.4) as f32,
+					((x_shift + 0.5*a)*t.1 + (y_shift + b)*t.3 + t.5) as f32),
+					(bond_r * t.6) as f32,
+					bond_color
+				);
+			}
+			
+			if show_atoms {
+				for (x, y, color) in [
+					(0.0, 0.0, cr_color),
+					(0.5*a, 0.5*b, cr_color),
+					(0.5*a, 0.0, o_color),
+					(0.0, 0.5*b, cl_color)
+				] {
+					graphics.draw_circle((((x + x_shift)*t.0 + (y + y_shift)*t.2 + t.4) as f32, ((x + x_shift)*t.1 + (y + y_shift)*t.3 + t.5) as f32), (r * t.6) as f32, color);
+				}
+			}
 			
 		}
 	}
@@ -162,6 +217,16 @@ pub fn draw(w: &mut MyWindowHandler, helper: &mut WindowHelper, graphics: &mut G
 					);
 				}
 			}
+			Lattice::CrOCl(a, b, cr, o, cl) => {
+				draw_crocl(graphics, a, b, cr, o, cl, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+					(start_x / a) as i32 - 1,
+					(start_y / b) as i32 - 1,
+					(end_x / a) as i32,
+					(end_y / b) as i32,
+					w.get_output_transform(0.0),
+					false
+				);
+			}
 			Lattice::TMD(a, tm, cg) => {
 				draw_tmd(graphics, a, tm, cg, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
 					((start_x + start_y / f64::sqrt(3.0)) / a) as i32 - 1,
@@ -194,23 +259,48 @@ pub fn draw(w: &mut MyWindowHandler, helper: &mut WindowHelper, graphics: &mut G
 			maxy = f64::max(maxy, iny);
 		}
 		
-		draw_pdse2(graphics, w.a, w.b, w.pd_color, w.se_color, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
-			(minx / w.a) as i32 - 1,
-			(miny / w.b) as i32 - 1,
-			(maxx / w.a) as i32,
-			(maxy / w.b) as i32,
-			w.get_output_transform(w.angle),
-			false
-		);
-		if w.bilayer {
-			draw_pdse2(graphics, w.a, w.b, w.pd_color, w.se_color, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
-				(minx / w.a) as i32 - 1,
-				(miny / w.b) as i32 - 1,
-				(maxx / w.a) as i32,
-				(maxy / w.b) as i32,
-				w.get_output_transform(w.angle),
-				true
-			);
+		match w.rotated_lattice {
+			Lattice::PdSe2(a, b, pd, se) => {
+				draw_pdse2(graphics, a, b, pd, se, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+					(minx / a) as i32 - 1,
+					(miny / b) as i32 - 1,
+					(maxx / a) as i32,
+					(maxy / b) as i32,
+					w.get_output_transform(w.angle),
+					false
+				);
+				if w.bilayer {
+					draw_pdse2(graphics, a, b, pd, se, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+						(minx / a) as i32 - 1,
+						(miny / b) as i32 - 1,
+						(maxx / a) as i32,
+						(maxy / b) as i32,
+						w.get_output_transform(w.angle),
+						true
+					);
+				}
+			}
+			Lattice::CrOCl(a, b, cr, o, cl) => {
+				draw_crocl(graphics, a, b, cr, o, cl, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+					(minx / a) as i32 - 1,
+					(miny / b) as i32 - 1,
+					(maxx / a) as i32,
+					(maxy / b) as i32,
+					w.get_output_transform(w.angle),
+					false
+				);
+				if w.bilayer {
+					draw_crocl(graphics, a, b, cr, o, cl, w.bond_color, w.r, w.bond_r, w.show_atoms, w.show_bonds,
+						(minx / a) as i32 - 1,
+						(miny / b) as i32 - 1,
+						(maxx / a) as i32,
+						(maxy / b) as i32,
+						w.get_output_transform(w.angle),
+						true
+					);
+				}
+			}
+			Lattice::TMD(..) => ()
 		}
 	}
 	

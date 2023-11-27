@@ -4,6 +4,7 @@ use speedy2d::{dimen::Vector2, font::Font, color::Color};
 
 pub enum Lattice {
 	PdSe2(f64, f64, Color, Color),
+	CrOCl(f64, f64, Color, Color, Color),
 	TMD(f64, Color, Color)
 }
 
@@ -28,6 +29,7 @@ pub struct MyWindowHandler {
 	pub show_rotated: bool,
 	pub show_overlay: bool,
 	pub fixed_lattice: Lattice,
+	pub rotated_lattice: Lattice,
 	pub angle: f64,
 	pub da: f64,
 	pub frame_timer: Instant,
@@ -36,14 +38,19 @@ pub struct MyWindowHandler {
 	pub screenshot_dot: bool,
 	pub pd_color: Color,
 	pub se_color: Color,
+	pub cr_color: Color,
+	pub o_color: Color,
+	pub cl_color: Color,
 	pub s_color: Color,
 	pub w_color: Color,
 	pub mo_color: Color,
 	pub bond_color: Color,
 	pub r: f64,
 	pub bond_r: f64,
-	pub a: f64,
-	pub b: f64,
+	pub a_pdse2: f64,
+	pub b_pdse2: f64,
+	pub a_crocl: f64,
+	pub b_crocl: f64,
 	pub a_wse2: f64,
 	pub a_mose2: f64,
 	pub a_ws2: f64,
@@ -55,9 +62,9 @@ pub struct MyWindowHandler {
 impl MyWindowHandler {
 	pub fn new(size: Vector2<u32>) -> Self {
 		let pd_color = Color::from_rgb(0.1, 0.7, 0.7);
-		let se_color = Color::from_rgb(0.1, 0.8, 0.1);
-		let a = 5.755;
-		let b = 5.901;
+		let se_color = Color::from_rgb(0.5, 0.8, 0.1);
+		let a_pdse2 = 5.755;
+		let b_pdse2 = 5.901;
 		
 		Self {
 			size,
@@ -81,21 +88,27 @@ impl MyWindowHandler {
 			show_fixed: true,
 			show_rotated: true,
 			show_overlay: true,
-			fixed_lattice: Lattice::PdSe2(a, b, pd_color, se_color),
+			fixed_lattice: Lattice::PdSe2(a_pdse2, b_pdse2, pd_color, se_color),
+			rotated_lattice: Lattice::PdSe2(a_pdse2, b_pdse2, pd_color, se_color),
 			angle: 0.0,
 			da: 0.1,
 			screenshot: false,
 			screenshot_dot: false,
 			pd_color,
 			se_color,
+			cr_color: Color::from_rgb(0.1, 0.4, 0.8),
+			o_color: Color::from_rgb(0.9, 0.1, 0.1),
+			cl_color: Color::from_rgb(0.1, 0.9, 0.1),
 			s_color: Color::from_rgb(0.7, 0.7, 0.1),
 			w_color: Color::from_rgb(0.1, 0.5, 0.9),
 			mo_color: Color::from_rgb(0.6, 0.1, 0.9),
 			bond_color: Color::from_rgb(0.7, 0.7, 0.7),
 			r: 0.5,
 			bond_r: 0.15,
-			a,
-			b,
+			a_pdse2,
+			b_pdse2,
+			a_crocl: 3.19,
+			b_crocl: 3.867,
 			a_wse2: 3.32,
 			a_mose2: 3.322,
 			a_ws2: 3.184,
