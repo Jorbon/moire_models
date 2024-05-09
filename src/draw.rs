@@ -347,9 +347,22 @@ pub fn draw(w: &mut MyWindowHandler, helper: &mut WindowHelper, graphics: &mut G
 			graphics.draw_circle((w.mouse_x, w.mouse_y), 5.0, Color::MAGENTA);
 		}
 		let image_data = graphics.capture(ImageDataType::RGB);
-		let mut encoder = png::Encoder::new(BufWriter::new(File::create(format!("captures/{:.3}° ({:.3}, {:.3}).png", w.angle, mouse_pos.0, mouse_pos.1)).unwrap()), w.size.x, w.size.y);
-		encoder.set_color(png::ColorType::RGB);
-		encoder.write_header().unwrap().write_image_data(image_data.data()).unwrap();
+		if let Ok(metadata) = std::fs::metadata("captures") {
+			if !metadata.is_dir() {
+				println!("Couldn't create a directory for screen capture: file named 'captures' already exists");
+			}
+		} else {
+			std::fs::create_dir("captures").unwrap_or_else(|e| println!("Couldn't create a directory for screen capture: {e}"));
+		}
+		match File::create(format!("captures/{:.3}° ({:.3}, {:.3}).png", w.angle, mouse_pos.0, mouse_pos.1)) {
+			Ok(file) => {
+				let mut encoder = png::Encoder::new(BufWriter::new(file), w.size.x, w.size.y);
+				encoder.set_color(png::ColorType::RGB);
+				encoder.write_header().unwrap().write_image_data(image_data.data()).unwrap();
+			}
+			Err(e) => println!("Couldn't create screen capture file: {e}")
+		}
+		
 		
 		w.screenshot = false;
 	}
